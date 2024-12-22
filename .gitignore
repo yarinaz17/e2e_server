@@ -1,0 +1,6 @@
+__pycache__/
+__pycache__/connection.cpython-310.pyc
+__pycache__/request.cpython-310.pyc
+__pycache__/requesthandler.cpython-310.pyc
+__pycache__/response.cpython-310.pyc
+__pycache__/server.cpython-310.pyc

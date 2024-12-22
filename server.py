@@ -40,9 +40,10 @@ class Server:
                 # append the connection to the list of active connections
                 self.connections.append(conn)
                 # handle communication with client on a new thread
-                ct = threading.Thread(
-                    target=self.handle_client, args=(conn,))
-                ct.start()
+                # ct = threading.Thread(
+                #     target=self.handle_client, args=(conn,))
+                # ct.start()
+                self.handle_client(conn)
 
                 # TODO: start another thread that probes for connected client and checks if they have a pending message in the 'pending' list
 
@@ -58,6 +59,6 @@ class Server:
                 conn.close()
                 self.connections.remove(conn)
                 break
-            response = handler.handle_request(request, client_user)
+            response = handler.handle_request(request)
             if response != None:
                 conn.send_response(response)

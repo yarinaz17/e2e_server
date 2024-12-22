@@ -16,7 +16,7 @@ class RequestHandler:
     def __init__(self):
         pass
 
-    def handle_request(self, request: Request, user: User):
+    def handle_request(self, request: Request):
         """This method receives a request and a User object as argument and invokes the right request handler based on the request code"""
         code = request.get_code()
         # Update last seen for user
