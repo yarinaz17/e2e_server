@@ -2,6 +2,7 @@ from Crypto.Cipher import AES, PKCS1_OAEP
 from Crypto.Random import get_random_bytes
 from Crypto.PublicKey import RSA
 from Crypto.Util.Padding import unpad
+from Crypto.Hash import SHA256
 
 
 class CryptoManager:
@@ -30,3 +31,8 @@ class CryptoManager:
         cipher_rsa = PKCS1_OAEP.new(self.key_pair)
         data = cipher_rsa.decrypt(encrypted_data)
         return data
+
+    def compute_SHA256(self, header, payload):
+        hash_obj = SHA256.new()
+        hash_obj.update(header+payload)
+        return hash_obj.digest()

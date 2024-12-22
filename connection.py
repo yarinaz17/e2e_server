@@ -22,23 +22,46 @@ class Connection:
             raise ConnectionError("Connection is not open")
 
         try:
-            encrypted_header = self.sock.recv(FIXED_HEADER_SIZE)
+            encrypted_header = self.sock.recv(RSA_KEY_LEN)
         except ConnectionResetError:
             raise ConnectionResetError("Connection Reset Error")
 
         if len(encrypted_header) == 0:
             raise Exception("Connection closed by peer")
 
-        if len(encrypted_header) < FIXED_HEADER_SIZE:
+        if len(encrypted_header) < RSA_KEY_LEN:
             raise ValueError(
-                f"Expected {FIXED_HEADER_SIZE} bytes, but got {len(data)}")
+                f"Expected {RSA_KEY_LEN} bytes, but got {len(encrypted_header)}")
 
         # TODO: decrypt header
-        data = self.crypto.decrypt_with_private_key(encrypted_header)
+        decrypted_header = self.crypto.decrypt_with_private_key(
+            encrypted_header)
         # Unpack
         phone_id, dest_phone_id, code, timestamp, payload_size = struct.unpack(
-            '<10s 10s B 4s I', data)
+            '<10s 10s B I I', decrypted_header)
 
+        print(f"""Decrypted header :
+              Phone id = {phone_id}, Dest = {dest_phone_id}, Code = {code}, Timestamp = {int(timestamp)}, Payload Size = {payload_size}""")
+
+        # Read payload
+        encrypted_payload = self.sock.recv(RSA_KEY_LEN)
+        # Read hash
+        encrypted_hash = self.sock.recv(RSA_KEY_LEN)
+        # Decrypt payload
+        decrypted_payload = self.crypto.decrypt_with_private_key(
+            encrypted_payload)
+        print(f"Decrypted payload = ", decrypted_payload)
+        # Decrypt hash
+        decrypted_hash = self.crypto.decrypt_with_private_key(encrypted_hash)
+        print(f"Decrypted hash = ", decrypted_hash)
+        # ------------------- Calculate hash and compare ---------------------------
+        computed_hash = self.crypto.compute_SHA256(
+            decrypted_header, decrypted_payload)
+        print("Computed hash = ", computed_hash)
+        if (computed_hash == decrypted_hash):
+            print("Hash match !")
+
+        # drop request if hash is bad other wise continue below
         # convert code to Enum type
         code = Op(code)
         if (code == Op.REGISTER):
